@@ -1,0 +1,204 @@
+/* == SyncNotes Chat (namespaced) == */
+
+.room-chat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  max-width: 100%;
+  height: 480px;
+  min-height: 360px;
+  background: rgba(14, 22, 37, 0.65);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 20px;
+  padding: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+
+/* Cabezal pequeño con estado */
+.rc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .95rem;
+  color: #e6eaf2;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rc-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #16a34a, #10b981);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+}
+
+.rc-dot.off {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+/* área que scrollea (solo mensajes) */
+.rc-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.2) transparent;
+  background: transparent;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rc-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.rc-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rc-messages::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.2);
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.rc-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.4);
+}
+
+.rc-empty {
+  margin: auto;
+  text-align: center;
+  opacity: .75;
+  font-size: .95rem;
+  color: #9ca3af;
+}
+
+/* ítem de mensaje */
+.rc-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: end;
+  max-width: 86%;
+  margin-bottom: 12px;
+}
+
+.rc-item.me {
+  margin-left: auto;
+  grid-template-columns: 1fr 36px;
+}
+
+.rc-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1f2937, #374151);
+  color:#e5e7eb;
+  font-weight: 700;
+  letter-spacing: .3px;
+  user-select: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.rc-item.me .rc-avatar {
+  background: linear-gradient(135deg, #0b5ed7, #1e40af);
+  color:#fff;
+  border-color: rgba(22, 119, 255, 0.3);
+}
+
+.rc-bubble {
+  position: relative;
+  border-radius: 18px;
+  padding: 12px 16px;
+  line-height: 1.4;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  white-space: pre-wrap;
+  background: linear-gradient(145deg, #1A2234, #0f172a);
+  color:#E5E7EB;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.rc-bubble:hover {
+  transform: translateY(-1px);
+}
+
+.rc-item.me .rc-bubble {
+  background: linear-gradient(145deg, #0b5ed7, #1e40af);
+  color:#fff;
+  border-color: rgba(22, 119, 255, 0.2);
+}
+
+.rc-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: .73rem;
+  opacity: .78;
+  color: #9ca3af;
+}
+
+.rc-name {
+  font-weight: 600;
+}
+
+.rc-inputbar {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 44px;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  background: linear-gradient(to top, rgba(0,0,0,.25), transparent);
+  }
+
+.rc-input {
+  height: 42px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: #e5e7eb;
+  padding: 10px 12px;
+  outline: none;
+  }
+
+.rc-input::placeholder { color:#9aa3b2; }
+
+.rc-btn {
+  height: 42px;
+  border: none;
+  border-radius: 16px;
+  background: #0b5ed7;
+  color:#fff;
+  font-weight: 700;
+  cursor: pointer;
+  }
+
+.rc-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+/* Tabs */
+.with-tabs { display:flex; align-items:center; justify-content:flex-end; gap:.5rem; }
+
+.tab-btn { padding:.28rem .7rem; border-radius:999px; background:rgba(255,255,255,.08); color:#fff; border:none; transition:transform .1s ease, background .2s ease; }
+
+.tab-btn:hover { transform: translateY(-1px); background:rgba(255,255,255,.12); }
+
+.tab-btn.active { background:linear-gradient(90deg, rgba(59,130,246,.4), rgba(99,102,241,.4)); }

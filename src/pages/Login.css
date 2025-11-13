@@ -1,0 +1,170 @@
+:root{
+  --bg-1:#0f172a;
+  --bg-2:#0b1f35;
+  --card:#111827;
+  --muted:#9aa7bd;
+  --text:#e6edf6;
+  --brand:#2f80ed;
+  --brand-600:#2563eb;
+  --brand-700:#1d4ed8;
+  --shadow: 0 20px 60px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+  background: var(--bg-1);
+}
+
+/* Fondo general */
+.ns-root{
+  min-height:100dvh;
+  background:
+    radial-gradient(1200px 600px at 70% 20%, rgba(47,128,237,.18), transparent 60%),
+    radial-gradient(900px 500px at 20% 80%, rgba(14,165,233,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg-2), var(--bg-1) 40%, #0a1222 100%);
+}
+
+/* Contenedor principal centrado */
+.ns-main{
+  min-height:calc(100dvh - 64px);
+  display:grid;
+  place-items:center;
+  padding:48px 16px;
+}
+
+/* Tarjeta (card) */
+.ns-card{
+  width:min(520px, 92vw);
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), var(--card);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:28px 28px 24px;
+  box-shadow:var(--shadow);
+}
+
+.ns-title{
+  margin:0 0 .25rem 0;
+  font-size:1.6rem;
+}
+.ns-subtitle{
+  margin:.1rem 0 1.4rem 0;
+  color:var(--muted);
+}
+
+/* Formulario interno */
+.ns-form-scope form{
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+
+/* Label */
+.ns-form-scope label{
+  font-size:.9rem;
+  color:var(--muted);
+}
+
+/* Inputs comunes */
+.ns-form-scope input[type="text"],
+.ns-form-scope input[type="password"],
+.ns-form-scope input[type="email"],
+.ns-form-scope .input,
+.ns-form-scope .form-input,
+.ns-form-scope .StyledInput input{
+  width:100%;
+  height:44px !important;
+  border-radius:10px !important;
+  padding:0 14px !important;
+  background:#0b1324 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+  outline:none;
+  transition:box-shadow .15s ease,border-color .15s ease,background .15s ease;
+  display:block !important;
+  max-width:100% !important;
+}
+.ns-form-scope input::placeholder{ color:#7e8aa5; }
+.ns-form-scope input:focus{
+  border-color:transparent !important;
+  box-shadow:0 0 0 3px rgba(96,165,250,.35) !important;
+}
+
+/* Enlaces dentro del form */
+.ns-form-scope .ns-links-row{ display:flex; justify-content:flex-end; margin-top:2px; }
+.ns-form-scope a{ color:#8ab4ff; text-decoration:none; font-size:.9rem; }
+.ns-form-scope a:hover{text-decoration:underline;}
+
+/* Botones */
+.ns-form-scope button,
+.ns-form-scope .btn,
+.ns-form-scope .StyledButton button{
+  margin-top:.2rem;
+  height:46px !important;
+  border:none !important;
+  border-radius:10px !important;
+  cursor:pointer;
+  background:linear-gradient(180deg, var(--brand), var(--brand-600)) !important;
+  color:white !important;
+  font-weight:700;
+  letter-spacing:.2px;
+  box-shadow:0 8px 24px rgba(47,128,237,.35);
+  transition:transform .04s ease, background .15s ease;
+  width:100% !important;
+  max-width:100% !important;
+  display:block !important;
+}
+.ns-form-scope button:active{
+  transform:translateY(1px);
+  background:var(--brand-700) !important;
+}
+
+/* Texto inferior */
+.ns-form-scope p{
+  text-align:center;
+  color:var(--muted);
+  margin-top:.6rem;
+  font-size:.92rem;
+}
+
+/* Alertas (éxito / error) — banner debajo del formulario */
+.ns-alert{
+  margin-top:.9rem;
+  padding:.7rem .9rem;
+  border-radius:10px;
+  font-size:.95rem;
+  text-align:center;
+  border:1px solid transparent;
+  box-shadow:0 8px 18px rgba(0,0,0,.25);
+}
+.ns-alert--ok{
+  background:rgba(34,197,94,.12);
+  border-color:rgba(34,197,94,.38);
+  color:#c7f9d2;
+}
+.ns-alert--err{
+  background:rgba(239,68,68,.14);
+  border-color:rgba(239,68,68,.40);
+  color:#fecaca;
+}
+
+/* --- Errores por campo (debajo del label / encima del input) --- */
+.ns-field-error{
+  margin:4px 0 6px;
+  color:#fecaca;
+  font-size:.85rem;
+  line-height:1.2;
+}
+.ns-input--err{
+  border-color: rgba(239,68,68,.55) !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,.25) !important;
+}
+
+/* Responsive */
+@media (max-width:520px){
+  .ns-card{padding:22px 18px;}
+  .ns-title{font-size:1.4rem;}
+}
