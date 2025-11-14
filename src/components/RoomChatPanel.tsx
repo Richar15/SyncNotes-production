@@ -43,7 +43,7 @@ export default function RoomChatPanel({ roomId }: { roomId: string }) {
           </div>
         )}
 
-        {messages?.map((m: any) => {
+        {messages?.map((m: any, index: number) => {
           const msgId = norm(m.userId);
           const msgUser = lower(m.username);
           const isMe =
@@ -61,7 +61,7 @@ export default function RoomChatPanel({ roomId }: { roomId: string }) {
 
           return (
             <div
-              key={String(m.id ?? m.createdAt ?? `${m.username}-${Math.random()}`)}
+              key={String(m.id ?? m.createdAt ?? `${m.username}-${index}`)}
               className={`rc-item ${isMe ? "me" : ""}`}
             >
               {!isMe && <div className="rc-avatar">{badgeText}</div>}
