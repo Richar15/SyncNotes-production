@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { fetchRoomHistory, ChangeHistoryDto } from "@/api/history";
+import { ChangeHistoryDto } from "../api/history";
+import { getRoomHistory } from "../services/Api";
 
 function initials(name?: string) {
   if (!name) return "??";
@@ -19,7 +20,9 @@ function formatDate(dateStr: string) {
 
 function formatTime(dateStr: string) {
   try {
-    const d = new Date(dateStr);
+    // Intentar primero con timestamp, luego con createdAt
+    const timeStr = dateStr || "";
+    const d = new Date(timeStr);
     if (isNaN(d.getTime())) return "--:--";
     return d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
   } catch {
@@ -56,10 +59,11 @@ function actionTag(action?: string) {
 }
 
 function resolveUserName(it: ChangeHistoryDto, userDirectory: Record<string, string>, currentUserId?: string) {
-  const fromDto = (it as any).user?.username || it.userName?.trim();
+  // Priorizar el campo username que viene del backend
+  const fromDto = it.username || (it as any).user?.username || it.userName?.trim();
   if (fromDto) return fromDto;
   const id =
-    (it as any).userId ||
+    it.userId ||
     (it as any).user?.id ||
     (it as any).user?._id ||
     "";
@@ -86,16 +90,17 @@ export default function HistoryPanel({
 
   useEffect(() => {
     let mounted = true;
-    fetchRoomHistory(roomId, authToken)
-      .then((data) => mounted && setItems(data))
-      .catch((e) => mounted && setError(e.message));
+    getRoomHistory(roomId)
+      .then((data: ChangeHistoryDto[]) => mounted && setItems(data))
+      .catch((e: any) => mounted && setError(e.message));
     return () => { mounted = false; };
-  }, [roomId, authToken]);
+  }, [roomId]);
 
   const groups = useMemo(() => {
     const map = new Map<string, ChangeHistoryDto[]>();
     (items || []).forEach((it) => {
-      const key = formatDate(it.createdAt);
+      const dateStr = it.timestamp || it.createdAt;
+      const key = formatDate(dateStr);
       const arr = map.get(key) || [];
       arr.push(it);
       map.set(key, arr);
@@ -120,7 +125,8 @@ export default function HistoryPanel({
           <div className="history-date">{date}</div>
           <ul className="history-list">
              {dayItems.map((it, i) => {
-               const time = formatTime(it.createdAt);
+               const timeStr = it.timestamp || it.createdAt;
+               const time = formatTime(timeStr);
                const tag = actionTag(it.action);
                const phrase = actionToPhrase(it.action, it.details);
                 const displayName = resolveUserName(it, userDirectory, currentUserId);

@@ -2,9 +2,11 @@ export interface ChangeHistoryDto {
   id?: string;
   userId?: string;
   userName?: string;
+  username?: string; // Campo adicional que viene del backend
   action?: string;   // p.ej. CREAR_TAREA, ACTUALIZAR_TAREA, AGREGAR_MIEMBRO
   details?: string;  // texto libre que envía el backend
   createdAt: string; // fecha ISO o epoch
+  timestamp?: string; // Campo adicional que viene del backend
 }
 
 export async function fetchRoomHistory(roomId: string, token: string) {

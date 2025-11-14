@@ -274,6 +274,7 @@ export default function Navbar({
   onCreateRoom = undefined,
   toggleUserMenu = undefined,
   chatRoute = undefined,
+  historyRoute = undefined,
   backToRoom = undefined,
 } = {}) {
   const { user } = useAuth();
@@ -435,6 +436,11 @@ export default function Navbar({
            {chatRoute && (
              <Link to={chatRoute}>
                <Button $variant="secondary">Ir al chat</Button>
+             </Link>
+           )}
+           {historyRoute && (
+             <Link to={historyRoute}>
+               <Button $variant="secondary">Ir al historial</Button>
              </Link>
            )}
            {backToRoom && (

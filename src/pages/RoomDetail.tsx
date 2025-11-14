@@ -412,7 +412,7 @@ useEffect(() => {
 
   return (
     <div className="ns-root">
-      <Navbar chatRoute={roomId ? `/rooms/${roomId}/chat` : undefined} />
+      <Navbar chatRoute={roomId ? `/rooms/${roomId}/chat` : undefined} historyRoute={roomId ? `/rooms/${roomId}/history` : undefined} />
 
        <main className="dash-main">
          <header className="dash-header">
