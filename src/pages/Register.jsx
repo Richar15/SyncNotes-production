@@ -6,6 +6,7 @@ import AuthForm from "../components/AuthForm";
 import { register } from "../services/Api";
 import "./Login.css"; // reutilizamos los estilos del login
 
+
 export default function Register() {
   const [form, setForm] = useState({ name: "", username: "", password: "" });
   const [errors, setErrors] = useState({});

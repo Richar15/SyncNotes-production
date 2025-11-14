@@ -18,3 +18,4 @@ headers: {
 
 });
 
+export default api;
