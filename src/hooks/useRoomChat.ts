@@ -52,7 +52,7 @@ export function useRoomChat(roomId: string, httpBaseUrl: string) {
     seenIdsRef.current.clear();
     recentRef.current.clear();
     chatService.connect({
-      httpBaseUrl: "http://localhost:8081",
+      httpBaseUrl: "https://syncnotes-backend.onrender.com",
       roomId,
       onMessage,
       onStatus: setStatus,

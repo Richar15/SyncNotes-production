@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081"; // Usa el MISMO host/puerto que el login
+const BASE = import.meta.env.VITE_API_BASE_URL || "https://syncnotes-backend.onrender.com"; // Usa el MISMO host/puerto que el login
 
 const WS_ENDPOINT = `${BASE}/ws`;
 

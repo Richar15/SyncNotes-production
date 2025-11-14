@@ -19,7 +19,7 @@ private connected = false;
 
 private static baseUrl(): string {
 
-const base = (import.meta as any).env.VITE_API_URL || "http://localhost:8081";
+const base = (import.meta as any).env.VITE_API_URL || "https://syncnotes-backend.onrender.com";
 
 return String(base).replace(/\/+$/, "");
 

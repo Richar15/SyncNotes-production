@@ -16,7 +16,7 @@ export function connectWebSocket(roomId, onMessage) {
   currentRoomId = roomId;
   onMessageCallback = onMessage;
 
-  const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081';
+  const BASE = import.meta.env.VITE_API_BASE_URL || 'https://syncnotes-backend.onrender.com';
   const socket = new SockJS(`${BASE}/ws`);
   stompClient = new Client({
     webSocketFactory: () => socket,
