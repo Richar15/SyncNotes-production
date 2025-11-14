@@ -2,13 +2,13 @@ import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { Plus, User, LogOut, Edit, Trash2 } from "lucide-react";
-import logoPng from "../assets/logo.png";
+import logoPng from "../assets/Logo.png";
 import { searchUser } from "../services/Api";
 import { useAuth } from "../hooks/useAuth";
 
 // Helpers MINIMOS y SEGUROS (colócalos arriba del componente, en el mismo archivo):
 
-const BASE = "http://localhost:8081"; // usa la MISMA base del login
+const BASE = "https://syncnotes-backend.onrender.com"; // usa la MISMA base del login
 
 const getToken = () => localStorage.getItem("token") || "";
 

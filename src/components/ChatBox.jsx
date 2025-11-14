@@ -11,48 +11,56 @@ export default function ChatBox({ roomId, onClose }) {
   const listRef = useRef(null);
   const recentSentRef = useRef(new Set());
 
-  const token = localStorage.getItem("auth_token");
-  let currentUsername = "";
+  const token = localStorage.getItem('auth_token');
+  let currentUsername = '';
   if (token) {
     try {
-      const decoded = JSON.parse(atob(token.split(".")[1]));
-      currentUsername = decoded.sub || decoded.username;
-    } catch {}
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      currentUsername = decoded.sub || decoded.username || '';
+    } catch {
+      currentUsername = '';
+    }
   }
+  // normalize once to make comparisons safe
+  currentUsername = (currentUsername || '').trim().toLowerCase();
 
   const makeSig = (roomId, content) => `${roomId}|${content.trim()}`;
 
   useEffect(() => {
     if (!roomId) return;
-    console.log("roomId recibido en ChatBox:", roomId);
-    const token = localStorage.getItem("auth_token");
+    const token = localStorage.getItem('auth_token');
     if (!token) {
-      console.error(" No se encontró el token de autenticación");
+      console.error('No se encontró el token de autenticación');
       return;
     }
 
     async function fetchMessages() {
       try {
-        const response = await fetch(`http://localhost:8081/api/rooms/${roomId}/messages`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await fetch(
+          `https://syncnotes-backend.onrender.com/api/rooms/${roomId}/messages`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (response.ok) {
           const data = await response.json();
-          console.log("Historial cargado:", data);
-          //  Mantener estructura: enviados a la derecha, recibidos a la izquierda
-           setMessages(
-             data.map((msg) => ({
-               ...msg,
-               username: msg.username?.trim().toLowerCase(),
-               sender: msg.username?.trim().toLowerCase(),
-               isOwnMessage: msg.username?.trim().toLowerCase() === currentUsername, // diferencia visual
-             }))
-           );
+          // normalize username safely
+          setMessages(
+            data.map((msg) => {
+              const normalized = (msg.username || '').trim().toLowerCase();
+              return {
+                ...msg,
+                username: normalized,
+                sender: normalized,
+                isOwnMessage: normalized === currentUsername,
+              };
+            })
+          );
         } else {
-          console.error(" Error al cargar mensajes:", response.status);
+          console.error('Error al cargar mensajes:', response.status);
         }
       } catch (error) {
-        console.error(" Error al obtener mensajes:", error);
+        console.error('Error al obtener mensajes:', error);
       }
     }
 
@@ -63,29 +71,35 @@ export default function ChatBox({ roomId, onClose }) {
         roomId,
         onConnected: () => setConnected(true),
         onMessage: (payload) => {
-           console.log("[WS] payload recibido:", payload);
-           const content = payload?.data?.content ?? payload?.payload?.content ?? payload?.content ?? '';
-           const sig = makeSig(roomId, content);
-           if (recentSentRef.current.has(sig)) {
-             recentSentRef.current.delete(sig);
-             setMessages((prev) => prev.map(m => m.content === content && m.self && m.status === 'sending' ? {...m, status: 'sent'} : m));
-           } else {
-             const username = payload?.data?.username?.trim().toLowerCase() || payload?.payload?.username?.trim().toLowerCase() || "equipo";
-             const msg = {
-               sender: username,
-               content,
-               ts: payload?.timestamp || Date.now(),
-               username,
-               self: username.trim().toLowerCase() === currentUsername.trim().toLowerCase(),
-               isOwnMessage: username.trim().toLowerCase() === currentUsername.trim().toLowerCase(),
-             };
-             setMessages((prev) => [...prev, msg]);
-           }
-         },
+          const content =
+            payload?.data?.content ?? payload?.payload?.content ?? payload?.content ?? '';
+          const sig = makeSig(roomId, content);
+          if (recentSentRef.current.has(sig)) {
+            recentSentRef.current.delete(sig);
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.content === content && m.self && m.status === 'sending' ? { ...m, status: 'sent' } : m
+              )
+            );
+          } else {
+            const rawName = payload?.data?.username || payload?.payload?.username || 'equipo';
+            const username = (rawName || '').trim().toLowerCase();
+            const msg = {
+              sender: username,
+              content,
+              ts: payload?.timestamp || Date.now(),
+              username,
+              self: username === currentUsername,
+              isOwnMessage: username === currentUsername,
+            };
+            setMessages((prev) => [...prev, msg]);
+          }
+        },
         onError: () => setConnected(false),
       });
       clientRef.current.connect();
     })();
+
     return () => clientRef.current?.disconnect();
   }, [roomId]);
 
@@ -101,25 +115,34 @@ export default function ChatBox({ roomId, onClose }) {
       clientRef.current?.client?.publish({
         destination: `/app/room/${roomId}/chat`,
         body: JSON.stringify({ content: msg }),
-        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
+        headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` },
       });
-      console.log("Mensaje enviado al backend (WS):", msg);
     } catch (err) {
-      console.error(" Error al publicar mensaje al backend:", err);
+      console.error('Error al publicar mensaje al backend:', err);
     }
-    // Asegurar que los mensajes se guarden en la base de datos
-    fetch(`http://localhost:8081/api/rooms/${roomId}/messages`, {
+
+    // persist message via REST as fallback
+    fetch(`https://syncnotes-backend.onrender.com/api/rooms/${roomId}/messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('auth_token')}`
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
       },
-      body: JSON.stringify({ content: msg })
-    }).catch(err => console.error('Error guardando mensaje:', err));
+      body: JSON.stringify({ content: msg }),
+    }).catch((err) => console.error('Error guardando mensaje:', err));
+
     const ts = Date.now();
     setMessages((prev) => [
       ...prev,
-      { sender: currentUsername, content: msg, ts, self: true, status: 'sending', isOwnMessage: true, username: currentUsername },
+      {
+        sender: currentUsername,
+        content: msg,
+        ts,
+        self: true,
+        status: 'sending',
+        isOwnMessage: true,
+        username: currentUsername,
+      },
     ]);
     recentSentRef.current.add(makeSig(roomId, msg));
     setTimeout(() => recentSentRef.current.delete(makeSig(roomId, msg)), 6000);
@@ -172,33 +195,44 @@ export default function ChatBox({ roomId, onClose }) {
         flexDirection: 'column',
       }}
     >
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-          <div style={{ fontWeight: 800, color: '#E5E7EB' }}>Chat del Equipo</div>
-          <button
-            onClick={() => onClose && onClose()}
-            style={{
-              marginLeft: "auto",
-              background: "transparent",
-              border: "none",
-              color: "#E5E7EB",
-              fontSize: 18,
-              cursor: "pointer"
-            }}
-            aria-label="Cerrar chat"
-          >
-            ×
-          </button>
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ fontWeight: 800, color: '#E5E7EB' }}>Chat del Equipo</div>
+        <button
+          onClick={() => onClose && onClose()}
+          style={{
+            marginLeft: 'auto',
+            background: 'transparent',
+            border: 'none',
+            color: '#E5E7EB',
+            fontSize: 18,
+            cursor: 'pointer',
+          }}
+          aria-label="Cerrar chat"
+        >
+          ×
+        </button>
+      </div>
 
-         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-           <button onClick={() => setIsChatVisible(!isChatVisible)} style={{ marginBottom: '10px', padding: '5px 10px', background: '#374151', color: '#E5E7EB', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-             {isChatVisible ? 'Ocultar Chat' : 'Mostrar Chat'}
-           </button>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <button
+          onClick={() => setIsChatVisible(!isChatVisible)}
+          style={{
+            marginBottom: '10px',
+            padding: '5px 10px',
+            background: '#374151',
+            color: '#E5E7EB',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          {isChatVisible ? 'Ocultar Chat' : 'Mostrar Chat'}
+        </button>
 
-           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-             {isChatVisible && (
-               <div
-                 ref={listRef}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {isChatVisible && (
+            <div
+              ref={listRef}
               style={{
                 flex: 1,
                 overflowY: 'auto',
@@ -207,122 +241,79 @@ export default function ChatBox({ roomId, onClose }) {
                 display: 'grid',
               }}
             >
-        {messages.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#9CA3AF', marginTop: 32 }}>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                margin: '0 auto 8px',
-                borderRadius: 12,
-                border: '2px solid #4B5563',
-              }}
-            />
-            <div style={{ fontWeight: 600 }}>No hay mensajes todavía.</div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>
-              ¡Rompe el hielo y saluda al equipo!
-            </div>
-          </div>
-        ) : (
-          <div>
-            {messages.map((msg, index) => {
-              const isOwnMessage = msg.isOwnMessage;
-              return (
-                <div
-                  key={index}
-                  className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-2`}
-                >
+              {messages.length === 0 ? (
+                <div style={{ textAlign: 'center', color: '#9CA3AF', marginTop: 32 }}>
                   <div
-                    className={`max-w-xs px-3 py-2 rounded-2xl shadow-md ${
-                      isOwnMessage
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-gray-700 text-white rounded-bl-none"
-                    }`}
-                  >
-                    <p className="text-sm">{msg.content}</p>
-                    <p className="text-xs opacity-70 text-right">{msg.username}</p>
-                  </div>
+                    style={{
+                      width: 40,
+                      height: 40,
+                      margin: '0 auto 8px',
+                      borderRadius: 12,
+                      border: '2px solid #4B5563',
+                    }}
+                  />
+                  <div style={{ fontWeight: 600 }}>No hay mensajes todavía.</div>
+                  <div style={{ fontSize: 12, opacity: 0.8 }}>¡Rompe el hielo y saluda al equipo!</div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <form onSubmit={send} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escribe un mensaje..."
-          style={{
-            flex: 1,
-            background: '#111827',
-            color: '#E5E7EB',
-            border: '1px solid #374151',
-            borderRadius: 12,
-            padding: '10px 12px',
-            outline: 'none',
-          }}
-          disabled={!connected}
-        />
-        <button
-          type="submit"
-          title="Enviar"
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 10,
-            border: 'none',
-            background: '#2563EB',
-            color: 'white',
-            cursor: 'pointer',
-            display: 'grid',
-            placeItems: 'center',
-            fontSize: 18,
-          }}
-        >
-          ✈️
-        </button>
-      </form>
-    </div>
-  </aside>
-);
+              ) : (
+                <div>
+                  {messages.map((msg, index) => {
+                    const isOwnMessage = msg.isOwnMessage;
+                    return (
+                      <div key={index} className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2`}>
+                        <div
+                          className={`max-w-xs px-3 py-2 rounded-2xl shadow-md ${
+                            isOwnMessage ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'
+                          }`}
+                        >
+                          <p className="text-sm">{msg.content}</p>
+                          <p className="text-xs opacity-70 text-right">{msg.username}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
-         <form onSubmit={send} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-           <input
-             value={text}
-             onChange={(e) => setText(e.target.value)}
-             placeholder="Escribe un mensaje..."
-             style={{
-               flex: 1,
-               background: '#111827',
-               color: '#E5E7EB',
-               border: '1px solid #374151',
-               borderRadius: 12,
-               padding: '10px 12px',
-               outline: 'none',
-             }}
-             disabled={!connected}
-           />
-           <button
-             type="submit"
-             title="Enviar"
-             style={{
-               width: 44,
-               height: 44,
-               borderRadius: 10,
-               border: 'none',
-               background: '#2563EB',
-               color: 'white',
-               cursor: 'pointer',
-               display: 'grid',
-               placeItems: 'center',
-               fontSize: 18,
-             }}
-           >
-            ✈️
-         </button>
+          <form onSubmit={send} style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Escribe un mensaje..."
+              style={{
+                flex: 1,
+                background: '#111827',
+                color: '#E5E7EB',
+                border: '1px solid #374151',
+                borderRadius: 12,
+                padding: '10px 12px',
+                outline: 'none',
+              }}
+              disabled={!connected}
+            />
+            <button
+              type="submit"
+              title="Enviar"
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 10,
+                border: 'none',
+                background: '#2563EB',
+                color: 'white',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                fontSize: 18,
+              }}
+            >
+              ✈️
+            </button>
           </form>
-       )}
-     </aside>
-   );
- }
+        </div>
+      </div>
+    </aside>
+  );
+}
