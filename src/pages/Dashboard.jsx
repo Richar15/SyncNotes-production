@@ -14,7 +14,7 @@ import {
   addMember,
   updateMemberRole,
   searchUser,
-} from "../services/api";
+} from "../services/Api";
 import { Trash2, CheckCircle, Circle, Plus, X, Users } from "lucide-react";
 
 const isValidMember = (m) => {
@@ -337,199 +337,166 @@ export default function Dashboard() {
           <div className="dash-loading">Cargando…</div>
         ) : error ? (
           <div className="ns-alert ns-alert--err">{error}</div>
-          ) : (
-            selectedRoom ? (
-             <section className="dash-room-view">
-                <aside className="dash-right">
-                <h2 className="dash-section-title">
-                  {selectedRoom
-                    ? `Sala: ${selectedRoom.name}`
-                    : "Selecciona una sala"}
-                </h2>
-                   {selectedRoom && (
-                     <div>
-                       <div className="room-info">
-                         <h3>Información de la Sala</h3>
-                         <div>
-                           <p><strong>Descripción:</strong> {selectedRoom.description || "Sin descripción"}</p>
-                           <p><strong>Pública:</strong> {selectedRoom.isPublic ? "Sí" : "No"}</p>
-                           {(() => {
-                             const ownerUsername = getResolvedOwner(selectedRoom.members, selectedRoom.ownerId);
-                             return ownerUsername && <p><strong>Propietario:</strong> {ownerUsername}</p>;
-                           })()}
-                           <p><strong>Miembros:</strong> {sanitizeMembers(selectedRoom.members).length}</p>
-                           {selectedRoom.members && selectedRoom.members.some(m => m.userId === me?.id && (m.role === "OWNER" || m.role === "ADMIN")) && (
-                            <button className="btn-secondary" onClick={() => setOpenAddMemberModal(true)}>
-                              + Añadir Miembro
-                            </button>
-                           )}
-                         </div>
+        ) : selectedRoom ? (
+          <section className="dash-room-view">
+            <aside className="dash-right">
+              <h2 className="dash-section-title">
+                {selectedRoom ? `Sala: ${selectedRoom.name}` : "Selecciona una sala"}
+              </h2>
+              {selectedRoom && (
+                <div>
+                  <div className="room-info">
+                    <h3>Información de la Sala</h3>
+                    <div>
+                      <p><strong>Descripción:</strong> {selectedRoom.description || "Sin descripción"}</p>
+                      <p><strong>Pública:</strong> {selectedRoom.isPublic ? "Sí" : "No"}</p>
+                      {(() => {
+                        const ownerUsername = getResolvedOwner(selectedRoom.members, selectedRoom.ownerId);
+                        return ownerUsername && <p><strong>Propietario:</strong> {ownerUsername}</p>;
+                      })()}
+                      <p><strong>Miembros:</strong> {sanitizeMembers(selectedRoom.members).length}</p>
+                      {selectedRoom.members && selectedRoom.members.some(m => m.userId === me?.id && (m.role === "OWNER" || m.role === "ADMIN")) && (
+                        <button className="btn-secondary" onClick={() => setOpenAddMemberModal(true)}>
+                          + Añadir Miembro
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-                       </div>
-                       <div className="members-list">
-                        <h3>Miembros ({sanitizeMembers(selectedRoom.members).length})</h3>
-                         <ul>
-                           {sanitizeMembers(selectedRoom.members).map((m, i) => {
-                             const effectiveRole = m.role || "EDITOR";
-                             const badgeClass = {
-                               OWNER: "badge-owner",
-                               ADMIN: "badge-admin",
-                               EDITOR: "badge-editor",
-                               VIEWER: "badge-viewer",
-                             };
-                             const roleMap = {
-                               OWNER: "PROPIETARIO",
-                               ADMIN: "ADMIN",
-                               EDITOR: "MIEMBRO",
-                               VIEWER: "LECTOR",
-                             };
-                             const label = m.name || m.username || `Usuario ${i + 1}`;
-                             return (
-                               <li key={m.userId || m.id || i} className="member-item">
-                                 <div className="member-info">
-                                   <span className="member-name">{label}</span>
-                                   <select
-                                     value={effectiveRole}
-                                     onChange={(e) => handleRoleChange(m.userId || m.id, e.target.value)}
-                                     disabled={!(me?.id === selectedRoom.ownerId || me?.role === "ADMIN")}
-                                     className="member-role-select"
-                                   >
-                                     <option value="EDITOR">Miembro</option>
-                                     <option value="VIEWER">Lector</option>
-                                   </select>
-                                 </div>
-                                 <div className="member-actions">
-                                    <button
-                                      className="btn-ghost"
-                                      onClick={() => handleRemoveMember(m.userId || m.id)}
-                                      disabled={!(me?.id === selectedRoom.ownerId || me?.role === "ADMIN")}
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                 </div>
-                               </li>
-                             );
-                           })}
-                         </ul>
-                       </div>
-                     </div>
-                   )}
-
-                <h3>Tareas</h3>
-                <div className="tasks-panel">
-                    <div className="tasks-empty">No hay tareas en esta sala 🧹</div>
-                    <ul className="tasks-list">
-                      {tasks.map((t) => (
-                        <li
-                          key={t.id}
-                          className="task-item"
-                          onClick={() => { setSelectedTask(t); setShowTaskModal(true); }}
-                        >
-                          {/* Lado izquierdo: punto + título */}
-                          <div className="task-main">
-                            <span className="dot" style={{ background: t.priority === "HIGH" ? "#ef4444" : t.priority === "LOW" ? "#22c55e" : "#f59e0b" }} />
-                            <span className="task-title" style={t.completed ? { textDecoration: "line-through", opacity: 0.6 } : {}}>{t.title}</span>
-                            <span className={`badge ${t.priority === "HIGH" ? "badge-danger" : t.priority === "LOW" ? "badge-success" : "badge-warning"}`}>
-                              {t.priority}
-                            </span>
-                          </div>
-                          {/* Lado derecho: acciones (no deben propagar el click) */}
-                          <div className="task-actions" onClick={(e) => e.stopPropagation()}>
-                            <button
-                              className="icon-btn"
-                              title={t.completed ? "Marcar como pendiente" : "Marcar como completada"}
-                              onClick={() => handleToggleComplete(t)}
-                              style={{ color: t.completed ? '#6b7280' : '#22c55e' }}
-                            >
-                              {t.completed ? <Circle size={18} /> : <CheckCircle size={18} />}
-                            </button>
-                            <button
-                              className="icon-btn"
-                              title="Eliminar tarea"
-                               onClick={() => confirmDeleteTask(t)}
-                               style={{ color: '#ef4444' }}
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                        </div>
-                        </li>
-                      ))}
+                  <div className="members-list">
+                    <h3>Miembros ({sanitizeMembers(selectedRoom.members).length})</h3>
+                    <ul>
+                      {sanitizeMembers(selectedRoom.members).map((m, i) => {
+                        const effectiveRole = m.role || "EDITOR";
+                        const label = m.name || m.username || `Usuario ${i + 1}`;
+                        return (
+                          <li key={m.userId || m.id || i} className="member-item">
+                            <div className="member-info">
+                              <span className="member-name">{label}</span>
+                              <select
+                                value={effectiveRole}
+                                onChange={(e) => handleChangeRole(m.userId || m.id, e.target.value)}
+                                disabled={!(me?.id === selectedRoom.ownerId || me?.role === "ADMIN")}
+                                className="member-role-select"
+                              >
+                                <option value="EDITOR">Miembro</option>
+                                <option value="VIEWER">Lector</option>
+                              </select>
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
-
-                  <button
-                    className="btn-panel"
-                    onClick={() => setShowChat(!showChat)}
-                    style={{ marginTop: '10px', width: 'auto', padding: '10px 16px' }}
-                  >
-                    {showChat ? 'Ocultar Chat' : 'Mostrar Chat'}
-                  </button>
-                  <button
-                    className="btn-panel"
-                    onClick={() => {
-                      setSelectedRoom(null);
-                      setSelectedRoomId(null);
-                    }}
-                    style={{ marginTop: '20px', width: 'auto', padding: '10px 16px' }}
-                  >
-                    ← Volver a mis salas
-                  </button>
-              </aside>
-               </section>
-                                ) : (
-                <section className="dash-grid">
-               {/* 🟦 Salas */}
-               <div className="dash-left">
-                 <h2 className="dash-section-title">Mis Salas</h2>
-                  <div className="rooms-grid">
-                      {rooms.length === 0 ? (
-                       <div className="room-empty">
-                         <div className="room-empty-icon"><Users size={48} /></div>
-                         <div className="room-empty-title">Aún no tienes salas.</div>
-                         <div className="room-empty-sub">
-                           ¡Crea una para empezar a colaborar!
-                        </div>
-                      </div>
-                     ) : (
-                       rooms.map((r) => (
-                         <div key={r.id} className="room-card">
-                           <div className="room-title">{r.name}</div>
-                           <div className="room-sub">
-                             {r.members?.length ?? 0} miembros
-                           </div>
-                           <div className="room-actions">
-                             <button
-                               className="btn-secondary"
-                               onClick={() => handleOpenRoom(r)}
-                             >
-                               Abrir sala
-                             </button>
-                             <button
-                               className="btn-ghost"
-                               onClick={() => confirmDeleteRoom(r)}
-                             >
-                               🗑️ Eliminar
-                             </button>
-                           </div>
-                         </div>
-                       ))
-                     )}
-                   </div>
                 </div>
-               </div>
+              )}
 
-                {/* 🟩 Panel vacío en grid */}
-                <aside className="dash-right">
-                  <h2 className="dash-section-title">
-                    Selecciona una sala
-                  </h2>
-                   <div className="tasks-empty">
-                    Haz clic en "Abrir sala" para ver detalles
+              <h3>Tareas</h3>
+              <div className="tasks-panel">
+                <div className="tasks-empty">No hay tareas en esta sala 🧹</div>
+                <ul className="tasks-list">
+                  {tasks.map((t) => (
+                    <li
+                      key={t.id}
+                      className="task-item"
+                      onClick={() => { setSelectedTask(t); setOpenTaskModal(true); }}
+                    >
+                      <div className="task-main">
+                        <span className="dot" style={{ background: t.priority === "HIGH" ? "#ef4444" : t.priority === "LOW" ? "#22c55e" : "#f59e0b" }} />
+                        <span className="task-title" style={t.completed ? { textDecoration: "line-through", opacity: 0.6 } : {}}>{t.title}</span>
+                        <span className={`badge ${t.priority === "HIGH" ? "badge-danger" : t.priority === "LOW" ? "badge-success" : "badge-warning"}`}>
+                          {t.priority}
+                        </span>
+                      </div>
+                      <div className="task-actions" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          className="icon-btn"
+                          title={t.completed ? "Marcar como pendiente" : "Marcar como completada"}
+                          onClick={() => handleToggleComplete(t)}
+                          style={{ color: t.completed ? '#6b7280' : '#22c55e' }}
+                        >
+                          {t.completed ? <Circle size={18} /> : <CheckCircle size={18} />}
+                        </button>
+                        <button
+                          className="icon-btn"
+                          title="Eliminar tarea"
+                          onClick={() => confirmDeleteTask(t)}
+                          style={{ color: '#ef4444' }}
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <button
+                className="btn-panel"
+                onClick={() => setShowChat(!showChat)}
+                style={{ marginTop: '10px', width: 'auto', padding: '10px 16px' }}
+              >
+                {showChat ? 'Ocultar Chat' : 'Mostrar Chat'}
+              </button>
+              <button
+                className="btn-panel"
+                onClick={() => {
+                  setSelectedRoom(null);
+                  setSelectedRoomId(null);
+                }}
+                style={{ marginTop: '20px', width: 'auto', padding: '10px 16px' }}
+              >
+                ← Volver a mis salas
+              </button>
+            </aside>
+          </section>
+        ) : (
+          <section className="dash-grid">
+            <div className="dash-left">
+              <h2 className="dash-section-title">Mis Salas</h2>
+              <div className="rooms-grid">
+                {rooms.length === 0 ? (
+                  <div className="room-empty">
+                    <div className="room-empty-icon"><Users size={48} /></div>
+                    <div className="room-empty-title">Aún no tienes salas.</div>
+                    <div className="room-empty-sub">
+                      ¡Crea una para empezar a colaborar!
+                    </div>
                   </div>
-                  </aside>
-                </section>
-                )
-        </main>
+                ) : (
+                  rooms.map((r) => (
+                    <div key={r.id} className="room-card">
+                      <div className="room-title">{r.name}</div>
+                      <div className="room-sub">
+                        {r.members?.length ?? 0} miembros
+                      </div>
+                      <div className="room-actions">
+                        <button
+                          className="btn-secondary"
+                          onClick={() => handleOpenRoom(r)}
+                        >
+                          Abrir sala
+                        </button>
+                        <button
+                          className="btn-ghost"
+                          onClick={() => confirmDeleteRoom(r)}
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <aside className="dash-right">
+              <h2 className="dash-section-title">Selecciona una sala</h2>
+              <div className="tasks-empty">Haz clic en "Abrir sala" para ver detalles</div>
+            </aside>
+          </section>
+        )}
+      </main>
 
 
 

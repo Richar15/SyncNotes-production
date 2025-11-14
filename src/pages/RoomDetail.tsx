@@ -1,17 +1,18 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CheckCircle, Circle, Trash2, Pencil, Plus, ArrowLeft, MessageCircle, History, UserPlus, Brush, Eye, EyeOff } from "lucide-react";
 import Navbar from "../components/Navbar";
 import RoomChatPanel from "../components/RoomChatPanel";
 import HistoryPanel from "../components/HistoryPanel";
 import { useAuth } from "../hooks/useAuth";
-import { getRoomDetails, getRoomTasks, addMember, searchUser, updateTask, deleteTask, createTask, getActiveUsers } from "../services/api";
+import { getRoomDetails, getRoomTasks, addMember, searchUser, updateTask, deleteTask, createTask, getActiveUsers } from "../services/Api";
 import "./dashboard.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || "";
 
 interface Member {
   id?: string;
+  userId?: string;
   username?: string;
   name?: string;
   role?: string;
@@ -65,10 +66,11 @@ const isValidMember = (m: Member | string): boolean => {
   return Boolean(m.id || m.username || m.name);
 };
 
-const sanitizeMembers = (members = []) => members.filter(isValidMember);
+const sanitizeMembers = (members: (Member | string)[] = []): (Member | string)[] =>
+  members.filter(isValidMember) as (Member | string)[];
 
 // Intentar obtener el username del owner con los campos que pueda traer "room".
-const getOwnerUsername = (room) => {
+const getOwnerUsername = (room?: Room | null): string | null => {
   return (
     room?.owner?.username ||
     room?.createdBy?.username ||
@@ -79,16 +81,17 @@ const getOwnerUsername = (room) => {
 };
 
 // en caso de que tengan flags o roles.
-const findOwnerUsernameFromMembers = (members = []) => {
+const findOwnerUsernameFromMembers = (members: (Member | string)[] = []): string | null => {
   // 1) objetos con flags típicos
-  const byFlag = members.find(
-    (m) =>
-      typeof m !== "string" &&
-      (m.role === "OWNER" ||
-        m.role === "PROPIETARIO" ||
-        m.isOwner === true ||
-        m?.roles?.includes?.("OWNER"))
-  );
+  const byFlag = members.find((m) => {
+    if (typeof m === "string") return false;
+    return (
+      m.role === "OWNER" ||
+      m.role === "PROPIETARIO" ||
+      m.isOwner === true ||
+      (Array.isArray(m.roles) && m.roles.includes("OWNER"))
+    );
+  }) as Member | undefined;
   if (byFlag?.username) return byFlag.username;
 
   // 2) cadenas con rol dentro (p.ej., "juanperez123:OWNER")
@@ -100,7 +103,7 @@ const findOwnerUsernameFromMembers = (members = []) => {
   return null;
 };
 
-export default function RoomDetail(): JSX.Element {
+export default function RoomDetail(): React.ReactElement {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { token, user } = useAuth() as { token: string | null; user: User | null };
@@ -154,7 +157,7 @@ useEffect(() => {
       setRoom({ ...roomData, members: sanitizeMembers(roomData.members) });
       setTasks(tasksData);
       setActiveUsers(activeUsersData || []);
-    } catch (e) {
+    } catch (e: any) {
       console.error("❌ Error cargando sala:", e);
       setError(e?.message || "No se pudo cargar la sala.");
     } finally {
@@ -166,8 +169,8 @@ useEffect(() => {
     try {
       const data = await getActiveUsers(roomId);
       setActiveUsers(data || []);
-    } catch (e) {
-      console.warn("⚠️ No se pudo actualizar usuarios activos:", e.message);
+    } catch (e: any) {
+      console.warn("⚠️ No se pudo actualizar usuarios activos:", e?.message || e);
     }
   };
 
@@ -184,7 +187,7 @@ useEffect(() => {
 
     // Cerrar modal con Esc
     useEffect(() => {
-      const onKey = (e) => e.key === 'Escape' && setShowTaskModal(false);
+      const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setShowTaskModal(false);
       window.addEventListener('keydown', onKey);
       return () => window.removeEventListener('keydown', onKey);
     }, []);
@@ -240,10 +243,10 @@ useEffect(() => {
         setUserIdSeleccionado("");
 
       }
-     } catch (err) {
-       if (err.status === 404) {
+     } catch (err: any) {
+       if (err?.status === 404) {
          setMessage("Usuario no encontrado");
-       } else if (err.status === 401 || err.status === 403) {
+       } else if (err?.status === 401 || err?.status === 403) {
          setMessage("Sesión expirada. Redirigiendo a login.");
          const deletedU = localStorage.getItem("username");
          if (deletedU) localStorage.setItem("__lastDeletedUsername", deletedU);
@@ -253,9 +256,9 @@ useEffect(() => {
        } else {
          setMessage("Error al buscar usuario");
        }
-      setUserIdSeleccionado("");
+       setUserIdSeleccionado("");
 
-    } finally {
+     } finally {
       setSearching(false);
     }
   };
@@ -275,20 +278,20 @@ useEffect(() => {
         // Refrescar
         const roomData = await getRoomDetails(roomId!);
        setRoom({ ...roomData, members: sanitizeMembers(roomData.members) });
-     } catch (err) {
-       if (err.status === 401 || err.status === 403) {
-         setMessage("Sesión expirada o sin permisos. Redirigiendo a login.");
-         const deletedU = localStorage.getItem("username");
-         if (deletedU) localStorage.setItem("__lastDeletedUsername", deletedU);
-         localStorage.removeItem("token");
-         localStorage.removeItem("username");
-         window.location.replace("/login");
-       } else if (err.status === 400) {
-         setMessage(err.message || "Error en la solicitud");
-       } else {
-         setMessage(err.message || "No se pudo añadir el miembro");
-       }
-     }
+    } catch (err: any) {
+      if (err?.status === 401 || err?.status === 403) {
+        setMessage("Sesión expirada o sin permisos. Redirigiendo a login.");
+        const deletedU = localStorage.getItem("username");
+        if (deletedU) localStorage.setItem("__lastDeletedUsername", deletedU);
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        window.location.replace("/login");
+      } else if (err?.status === 400) {
+        setMessage(err.message || "Error en la solicitud");
+      } else {
+        setMessage(err.message || "No se pudo añadir el miembro");
+      }
+    }
   };
 
 
@@ -299,9 +302,9 @@ useEffect(() => {
      setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, completed: !t.completed } : t)));
      try {
        await updateTask(roomId!, task.id, { completed: !task.completed });
-     } catch (err) {
+     } catch (err: any) {
        setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, completed: originalCompleted } : t)));
-       alert(err.message || "No se pudo actualizar la tarea");
+       alert(err?.message || "No se pudo actualizar la tarea");
      }
    };
 
@@ -319,8 +322,8 @@ useEffect(() => {
        setTasks((prev) => prev.filter((t) => t.id !== taskToDelete.id));
        setOpenDeleteTaskModal(false);
        setTaskToDelete(null);
-     } catch (err) {
-       alert(err.message || "No se pudo eliminar la tarea");
+     } catch (err: any) {
+       alert(err?.message || "No se pudo eliminar la tarea");
      }
    };
 
@@ -357,16 +360,16 @@ useEffect(() => {
        setTaskForm({ title: "", description: "" });
        setIsEditing(false);
        setSelectedTaskId("");
-      } catch (err) {
-        if (err.status === 401 || err.status === 403) {
+      } catch (err: any) {
+        if (err?.status === 401 || err?.status === 403) {
           const deletedU = localStorage.getItem("username");
           if (deletedU) localStorage.setItem("__lastDeletedUsername", deletedU);
           localStorage.removeItem("token");
           localStorage.removeItem("username");
           window.location.replace("/login");
         } else {
-         alert(err.message || (isEditing ? "No se pudo editar la tarea" : "No se pudo crear la tarea"));
-       }
+          alert(err?.message || (isEditing ? "No se pudo editar la tarea" : "No se pudo crear la tarea"));
+        }
       } finally {
         setTaskLoading(false);
       }
@@ -376,7 +379,8 @@ useEffect(() => {
   if (error) return <div className="ns-root"><div className="ns-alert ns-alert--err">{error}</div></div>;
   if (!room) return <div className="ns-root"><div>No se encontró la sala.</div></div>;
 
-  const myRole = room?.members?.find(m => m.userId === user?.id)?.role;
+  const _foundMember = room?.members?.find(m => (typeof m !== 'string') && (m.userId === user?.id || m.id === user?.id)) as Member | undefined;
+  const myRole = _foundMember?.role;
   const safeMembers = sanitizeMembers(room?.members || []);
 
   const userDirectory = (() => {
@@ -408,7 +412,7 @@ useEffect(() => {
 
   return (
     <div className="ns-root">
-      <Navbar />
+      <Navbar onCreateRoom={() => {}} toggleUserMenu={() => {}} />
 
        <main className="dash-main">
          <header className="dash-header">
@@ -434,7 +438,7 @@ useEffect(() => {
                       {(() => {
                         const ownerObj = safeMembers.find(
                           (m) => typeof m !== "string" && m?.username === ownerUsername
-                        );
+                        ) as Member | undefined;
                         return ownerObj?.name || ownerObj?.username || ownerUsername;
                       })()}
                     </p>
@@ -583,8 +587,7 @@ useEffect(() => {
                     <div className="panel-content">
                       {rightTab === 'chat' ? (
                         <RoomChatPanel
-                          roomId={roomId}
-                          currentUsername={user?.username}
+                          roomId={roomId!}
                         />
                       ) : (
                         <HistoryPanel
@@ -758,7 +761,7 @@ useEffect(() => {
           </div>
         )}
 
-        <style jsx>{`
+        <style>{`
           .active-users-panel {
             margin-bottom: 20px;
           }

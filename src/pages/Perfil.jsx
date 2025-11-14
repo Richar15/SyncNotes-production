@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 import { Edit, Trash2, LogOut } from "lucide-react";
 
-const BASE = "http://localhost:8081";
+const BASE = "https://syncnotes-backend.onrender.com";
 
 const getToken = () => localStorage.getItem("token") || "";
 

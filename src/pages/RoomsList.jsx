@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Trash2 } from "lucide-react";
 import Navbar from "../components/Navbar";
-import { getMe, getMyRooms, deleteRoom, createRoom } from "../services/api";
+import { getMe, getMyRooms, deleteRoom, createRoom } from "../services/Api";
 import "./dashboard.css";
 
 const isValidMember = (m) => !!m && (typeof m === "string" || m.id || m.username || m.name);

@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import AuthForm from "../components/AuthForm";
-import { register } from "../services/api";
-import "./login.css"; // reutilizamos los estilos del login
+import { register } from "../services/Api";
+import "./Login.css"; // reutilizamos los estilos del login
 
 export default function Register() {
   const [form, setForm] = useState({ name: "", username: "", password: "" });
