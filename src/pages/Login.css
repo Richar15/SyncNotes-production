@@ -30,10 +30,12 @@ body{
 
 /* Contenedor principal centrado */
 .ns-main{
-  min-height:calc(100dvh - 64px);
+  /* Reserve space for the fixed navbar (80px height) */
+  min-height:calc(100dvh - 80px);
   display:grid;
   place-items:center;
-  padding:48px 16px;
+  /* add navbar height to top padding so the card sits below the fixed Nav */
+  padding:calc(48px + 80px) 16px 48px;
 }
 
 /* Tarjeta (card) */

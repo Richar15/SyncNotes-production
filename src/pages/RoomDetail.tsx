@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { CheckCircle, Circle, Trash2, Pencil, Plus, ArrowLeft, MessageCircle, History, UserPlus, Brush, Eye, EyeOff } from "lucide-react";
+import { CheckCircle, Circle, Trash2, Pencil, Plus, ArrowLeft, MessageCircle, History, UserPlus, Brush } from "lucide-react";
 import Navbar from "../components/Navbar";
 import RoomChatPanel from "../components/RoomChatPanel";
 import HistoryPanel from "../components/HistoryPanel";
@@ -111,7 +111,7 @@ export default function RoomDetail(): React.ReactElement {
   const [room, setRoom] = useState<Room | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isChatOpen, setIsChatOpen] = useState<boolean>(true);
+  /* chat toggle removed: chat moved to separate view */
 
    // Estados del modal añadir miembro
     const [openAddMemberModal, setOpenAddMemberModal] = useState<boolean>(false);
@@ -412,7 +412,7 @@ useEffect(() => {
 
   return (
     <div className="ns-root">
-      <Navbar onCreateRoom={() => {}} toggleUserMenu={() => {}} />
+      <Navbar chatRoute={roomId ? `/rooms/${roomId}/chat` : undefined} />
 
        <main className="dash-main">
          <header className="dash-header">
@@ -420,12 +420,9 @@ useEffect(() => {
               <ArrowLeft size={16} /> Volver a mis salas
             </button>
            <h1 className="dash-title">Sala: {room.name}</h1>
-            <button className="btn-toggle-chat" onClick={() => setIsChatOpen(!isChatOpen)}>
-              {isChatOpen ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
          </header>
 
-         <section className="dash-room-detail">
+         <section className="dash-room-detail no-chat">
              {/* Columna Izquierda: Sidebar */}
              <div className="sidebar-column">
                <div className="room-info">
@@ -488,13 +485,13 @@ useEffect(() => {
                       {activeUsers.map((user) => (
                         <li key={user.id} className="active-user-item">
                           <span className="active-user-icon"><Circle size={12} fill="green" color="green" /></span>
-                          {user.name || user.username}
+                          <span className="active-user-name">{user.name || user.username}</span>
                         </li>
                       ))}
                    </ul>
                  )}
                </div>
-             </div>
+              </div>
 
              {/* Columna Central: Tareas */}
              <div className="tasks-column">
@@ -563,47 +560,9 @@ useEffect(() => {
                      ))}
                   </ul>
                 )}
-              </div>
-             </div>
-
-              {/* Columna Derecha: Chat/Historial */}
-              <div className="chat-column">
-                {isChatOpen ? (
-                  <>
-                      <div className="flex justify-center gap-3 mb-3">
-                        <button
-                          onClick={() => setRightTab('chat')}
-                          className={rightTab === 'chat' ? 'btn-primary' : 'btn-tab-inactive'}
-                        >
-                          <MessageCircle size={16} /> Chat
-                        </button>
-                        <button
-                          onClick={() => setRightTab('history')}
-                          className={rightTab === 'history' ? 'btn-primary' : 'btn-tab-inactive'}
-                        >
-                          <History size={16} /> Historial
-                        </button>
-                      </div>
-                    <div className="panel-content">
-                      {rightTab === 'chat' ? (
-                        <RoomChatPanel
-                          roomId={roomId!}
-                        />
-                      ) : (
-                        <HistoryPanel
-                          roomId={roomId!}
-                          authToken={token!}
-                          userDirectory={userDirectory}
-                          currentUserId={user?.id}
-                        />
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <div className="chat-placeholder"></div>
-                )}
-              </div>
-        </section>
+                </div>
+               </div>
+              </section>
       </main>
 
       {/* Modal Añadir Miembro */}
@@ -674,7 +633,7 @@ useEffect(() => {
                   name="description"
                   value={taskForm.description}
                   onChange={handleTaskChange}
-                  placeholder="(opcional)"
+                  placeholder="(Obligatorio)"
                 />
               </label>
 
@@ -772,7 +731,7 @@ useEffect(() => {
           .active-user-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 4px;
           }
           .active-user-icon {

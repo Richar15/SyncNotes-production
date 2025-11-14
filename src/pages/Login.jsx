@@ -56,7 +56,7 @@ export default function Login() {
   }
 
   const fields = [
-    { label: "Username", type: "text", name: "username", placeholder: "Nombre del usuario" },
+    { label: "Nombre de Usuario", type: "text", name: "username", placeholder: "Ingresar Usuario" },
     { label: "Contraseña", type: "password", name: "password", placeholder: "Ingresar contraseña" },
   ];
 
@@ -66,13 +66,13 @@ export default function Login() {
 
       <main className="ns-main">
         <section className="ns-card">
-          <h1 className="ns-title">Iniciar sesión en SyncNotes</h1>
-          <p className="ns-subtitle">Bienvenido de nuevo. Accede a tus notas.</p>
+          <h1 className="ns-title">Iniciar Sesión en SyncNotes</h1>
+          <p className="ns-subtitle">Bienvenido de Nuevo. Accede a tus Notas.</p>
 
           <div className="ns-form-scope" aria-live="polite">
             <AuthForm
               fields={fields}
-              buttonText={loading ? "Entrando..." : "Iniciar sesión"}
+              buttonText={loading ? "Entrando..." : "Iniciar Sesión"}
               onSubmit={handleSubmit}
               formData={form}
               onChange={handleChange}

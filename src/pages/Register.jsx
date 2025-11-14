@@ -133,9 +133,9 @@ export default function Register() {
   }
 
   const fields = [
-    { label: "Nombre completo", type: "text", name: "name", placeholder: "Nombre completo" },
-    { label: "Username", type: "text", name: "username", placeholder: "usuario" },
-    { label: "Contraseña", type: "password", name: "password", placeholder: "Contraseña" },
+    { label: "Nombre Completo", type: "text", name: "name", placeholder: "IngresarNombre Completo" },
+    { label: " Nombre de Usuario", type: "text", name: "username", placeholder: " Ingresar Nombre de Usuario" },
+    { label: "Contraseña", type: "password", name: "password", placeholder: "Ingresar Contraseña" },
   ];
 
   return (
@@ -144,9 +144,9 @@ export default function Register() {
 
       <main className="ns-main">
         <section className="ns-card">
-          <h1 className="ns-title">Crea tu cuenta</h1>
+          <h1 className="ns-title">Crea Tu Cuenta</h1>
           <p className="ns-subtitle">
-            ¿Ya tienes una cuenta?{" "}
+            ¿Ya Tienes una Cuenta?{" "}
             <Link to="/login" className="ns-link">Inicia sesión</Link>
           </p>
 

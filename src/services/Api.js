@@ -202,7 +202,7 @@ async function apiDelete(path) {
     return true;
   } catch (err) {
     if (err.message === "Failed to fetch") {
-      err.message = "No se pudo conectar con el servidor (revisa que el backend esté en 8081).";
+      err.message = "No se pudo conectar con el servidor).";
     }
     throw err;
   }

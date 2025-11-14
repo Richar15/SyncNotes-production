@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { Plus, User, LogOut, Edit, Trash2 } from "lucide-react";
+import { Plus, User, LogOut, Edit, Trash2, ArrowLeft } from "lucide-react";
 import logoPng from "../assets/Logo.png";
 import { searchUser } from "../services/Api";
 import { useAuth } from "../hooks/useAuth";
@@ -102,6 +102,15 @@ const Right = styled.div`
   align-items: center;
   gap: 0.8rem;
   position: relative;
+  /* Ensure links wrapping buttons don't show underlines */
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  a:visited, a:hover, a:focus {
+    text-decoration: none;
+    color: inherit;
+  }
 `;
 
 const Button = styled.button`
@@ -262,16 +271,26 @@ const ModalContent = styled.div`
 `;
 
 export default function Navbar({
-  onCreateRoom,
-  toggleUserMenu,
-}) {
+  onCreateRoom = undefined,
+  toggleUserMenu = undefined,
+  chatRoute = undefined,
+  backToRoom = undefined,
+} = {}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const [initials, setInitials] = useState(getInitialsFromLS());
 
-  const safeToggleUserMenu = typeof toggleUserMenu === "function" ? toggleUserMenu : () => setMenuOpen(!menuOpen);
+  // Always toggle the internal menu. If a parent provided a toggle handler, call it too
+  const safeToggleUserMenu = (e) => {
+    try {
+      if (typeof toggleUserMenu === "function") toggleUserMenu(e);
+    } catch (err) {
+      // ignore parent handler errors
+    }
+    setMenuOpen((prev) => !prev);
+  };
 
   // 🔹 Estados para actualizar usuario
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -413,9 +432,21 @@ export default function Navbar({
         </Left>
 
         <Right ref={menuRef}>
-           <Button $variant="primary" onClick={onCreateRoom}>
-             <Plus size={16} /> Crear nueva sala
-           </Button>
+           {chatRoute && (
+             <Link to={chatRoute}>
+               <Button $variant="secondary">Ir al chat</Button>
+             </Link>
+           )}
+           {backToRoom && (
+             <Link to={backToRoom}>
+               <Button $variant="secondary"><ArrowLeft size={16} /> Volver a la sala</Button>
+             </Link>
+           )}
+           {typeof onCreateRoom === "function" && (
+             <Button $variant="primary" onClick={onCreateRoom}>
+               <Plus size={16} /> Crear nueva sala
+             </Button>
+           )}
 
             {/* 🔹 Avatar con menú desplegable */}
             <div style={{ position: "relative" }}>

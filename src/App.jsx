@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import RoomsList from "./pages/RoomsList";
 import RoomDetail from "./pages/RoomDetail";
+import RoomChatPage from "./pages/RoomChatPage";
 import Perfil from "./pages/Perfil";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -31,6 +32,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <RoomDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/rooms/:roomId/chat"
+          element={
+            <ProtectedRoute>
+              <RoomChatPage />
             </ProtectedRoute>
           }
         />

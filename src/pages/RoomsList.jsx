@@ -174,7 +174,7 @@ export default function RoomsList() {
                   name="description"
                   value={roomForm.description}
                   onChange={handleRoomChange}
-                  placeholder="(opcional)"
+                  placeholder="(Obligatorio)"
                 />
               </label>
 

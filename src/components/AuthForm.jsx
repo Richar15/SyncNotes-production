@@ -56,13 +56,7 @@ export default function AuthForm(props) {
         );
       })}
 
-      {showForgotPassword ? (
-        <div className="ns-links-row">
-          <Link to="/forgot" className="ns-link">
-            ¿Olvidaste tu contraseña?
-          </Link>
-        </div>
-      ) : null}
+  
 
       <button type="submit" className="ns-button">
         {buttonText}

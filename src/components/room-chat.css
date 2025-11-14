@@ -4,10 +4,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 380px;
+  width: 100%;
   max-width: 100%;
-  height: 480px;
-  min-height: 360px;
+  /* fill the parent panel height so input stays at the bottom */
+  height: 100%;
+  min-height: 320px;
   background: rgba(14, 22, 37, 0.65);
   border: 1px solid rgba(255,255,255,.06);
   border-radius: 20px;
@@ -48,7 +49,7 @@
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -166,9 +167,13 @@
   grid-template-columns: 1fr 44px;
   gap: 8px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,.08);
-  background: linear-gradient(to top, rgba(0,0,0,.25), transparent);
-  }
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(to top, rgba(0,0,0,.18), transparent);
+  /* keep input visible at bottom even when parent scrolls */
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
 
 .rc-input {
   height: 42px;
